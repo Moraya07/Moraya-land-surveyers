@@ -5,8 +5,10 @@ const NO_REFRESH_PATHS = new Set(['/auth/login', '/auth/refresh', '/auth/logout'
 const DEFAULT_RETRY_SECONDS = 30;
 
 interface RequestOptions {
-  method?: 'GET' | 'POST';
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH';
   body?: unknown;
+  /** Lets the caller cancel the request (TanStack Query passes one, so a changed query aborts the old call). */
+  signal?: AbortSignal;
 }
 
 let onSessionExpired: (() => void) | null = null;
@@ -15,7 +17,7 @@ export function setSessionExpiredHandler(handler: () => void): void {
   onSessionExpired = handler;
 }
 
-async function send(path: string, { method = 'GET', body }: RequestOptions): Promise<Response> {
+async function send(path: string, { method = 'GET', body, signal }: RequestOptions): Promise<Response> {
   try {
     return await fetch(`${BASE}${path}`, {
       method,
@@ -25,8 +27,11 @@ async function send(path: string, { method = 'GET', body }: RequestOptions): Pro
         ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      ...(signal ? { signal } : {}),
     });
-  } catch {
+  } catch (error) {
+    // A cancelled request is not a network failure: let the caller see the abort.
+    if (error instanceof DOMException && error.name === 'AbortError') throw error;
     throw new NetworkError();
   }
 }
@@ -48,21 +53,37 @@ function refreshSession(): Promise<boolean> {
 async function toApiError(res: Response): Promise<ApiError> {
   let code = 'INTERNAL_ERROR';
   let retry: number | undefined;
+  let fields: Record<string, string> | undefined;
   try {
     const body: unknown = await res.json();
     if (typeof body === 'object' && body !== null && 'error' in body) {
       const err = (body as { error: unknown }).error;
       if (typeof err === 'object' && err !== null) {
-        const { code: c, retryAfterSeconds } = err as { code?: unknown; retryAfterSeconds?: unknown };
+        const { code: c, retryAfterSeconds, fields: f } = err as {
+          code?: unknown;
+          retryAfterSeconds?: unknown;
+          fields?: unknown;
+        };
         if (typeof c === 'string') code = c;
         if (typeof retryAfterSeconds === 'number' && retryAfterSeconds > 0) retry = retryAfterSeconds;
+        fields = readFieldCodes(f);
       }
     }
   } catch {
     /* non-JSON error body: keep defaults */
   }
   if (res.status === 429 && retry === undefined) retry = DEFAULT_RETRY_SECONDS;
-  return new ApiError(res.status, code, retry);
+  return new ApiError(res.status, code, retry, fields);
+}
+
+/** Keeps only { field: MACHINE_CODE } pairs. Anything else (prose, nested data) is dropped. */
+function readFieldCodes(value: unknown): Record<string, string> | undefined {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+  const out: Record<string, string> = {};
+  for (const [key, v] of Object.entries(value)) {
+    if (typeof v === 'string' && /^[A-Z_]{1,40}$/.test(v)) out[key] = v;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {

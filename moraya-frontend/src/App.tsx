@@ -4,6 +4,7 @@ import { sessionKey } from './features/auth/useSession';
 import { I18nProvider } from './i18n';
 import { setSessionExpiredHandler } from './lib/api';
 import { queryClient } from './lib/queryClient';
+import { ToastProvider } from './components/ui/Toast';
 import { router } from './router';
 import { ThemeProvider } from './theme/ThemeProvider';
 
@@ -19,7 +20,9 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <I18nProvider>
-          <RouterProvider router={router} />
+          <ToastProvider>
+            <RouterProvider router={router} />
+          </ToastProvider>
         </I18nProvider>
       </ThemeProvider>
     </QueryClientProvider>

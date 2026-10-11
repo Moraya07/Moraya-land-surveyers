@@ -38,10 +38,19 @@ function parse(iso: string): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-/** dd/MM/yyyy */
+const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/** dd/MM/yyyy in Asia/Kolkata. A date-only value ("2024-03-05") is a calendar date, so it is not shifted. */
 export function formatDate(iso: string): string {
+  const m = DATE_ONLY.exec(iso);
+  if (m) return `${m[3]}/${m[2]}/${m[1]}`;
   const d = parse(iso);
   return d ? dateFormat.format(d) : '—';
+}
+
+/** formatDate for optional values: null/empty shows an em dash. */
+export function formatDateOrDash(iso: string | null | undefined): string {
+  return iso ? formatDate(iso) : '—';
 }
 
 /** HH:mm (24 hour) */

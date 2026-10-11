@@ -4,13 +4,16 @@ export class ApiError extends Error {
   readonly status: number;
   readonly code: string;
   readonly retryAfterSeconds?: number;
+  /** Per-field MACHINE codes (e.g. { name: 'REQUIRED' }). Never server prose. */
+  readonly fields?: Readonly<Record<string, string>>;
 
-  constructor(status: number, code: string, retryAfterSeconds?: number) {
+  constructor(status: number, code: string, retryAfterSeconds?: number, fields?: Record<string, string>) {
     super(code); // server message is intentionally never kept or shown
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
     this.retryAfterSeconds = retryAfterSeconds;
+    this.fields = fields;
   }
 }
 

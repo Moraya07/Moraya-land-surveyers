@@ -1,0 +1,33 @@
+# No secrets in this file. Secrets: `wrangler secret put SUPABASE_ANON_KEY` etc. (local: .dev.vars)
+name = "moraya-api"
+main = "src/index.ts"
+compatibility_date = "2025-09-01"
+
+# --- local development (wrangler dev) ---
+[vars]
+ENVIRONMENT = "development"
+SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co"
+ALLOWED_ORIGIN = "http://localhost:5173"
+REFRESH_COOKIE_DAYS = "7"
+PASSWORD_RESET_REDIRECT_URL = "http://localhost:5173/reset-password"
+DEV_INSECURE_COOKIES = "true"
+
+# --- production: `wrangler deploy --env production` (vars are not inherited, so repeat them) ---
+[env.production]
+name = "moraya-api"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+SUPABASE_URL = "https://azdfexttcxjexrurnwbn.supabase.co"
+ALLOWED_ORIGIN = "https://app.example.com"
+REFRESH_COOKIE_DAYS = "7"
+PASSWORD_RESET_REDIRECT_URL = "http://localhost:5173/reset-password"
+DEV_INSECURE_COOKIES = "false"
+
+# Serve the built frontend from the same Worker so cookies are first-party.
+# Uncomment for deploy (build ../moraya-frontend first). Not needed in dev: Vite proxies /api here.
+# [env.production.assets]
+# directory = "../Moraya-frontend/dist"
+# binding = "ASSETS"
+# not_found_handling = "single-page-application"
+# run_worker_first = ["/api/*"]

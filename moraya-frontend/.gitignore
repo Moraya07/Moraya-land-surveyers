@@ -3,7 +3,4 @@ dist
 .env
 .env.*
 !.env.example
-.DS_Store
-*.log
-.wrangler
-.dev.vars
+*.local

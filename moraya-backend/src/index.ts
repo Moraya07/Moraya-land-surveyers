@@ -1,42 +1,35 @@
-import { authenticate } from './auth'
-import { withCors } from './cors'
-import { findEmployeeByAuthUser } from './db'
-import type { Env } from './env'
-import { HttpError, json } from './http'
-import { buildProfile } from './profile'
+import { Hono } from 'hono';
+import { assertEnv, type AppEnv } from './env';
+import { AppError, jsonError } from './lib/errors';
+import { csrf } from './middleware/csrf';
+import { requestId } from './middleware/requestId';
+import { securityHeaders } from './middleware/security';
+import { auth } from './routes/auth';
+import { ping } from './routes/ping';
 
-async function handleApi(request: Request, env: Env, path: string): Promise<Response> {
-  if (path === '/api/health' && request.method === 'GET') {
-    return json({ ok: true })
-  }
+const app = new Hono<AppEnv>();
 
-  // Who am I? Identity, role, permissions and account status — all decided here, never by the browser.
-  if (path === '/api/me' && request.method === 'GET') {
-    const { userId } = await authenticate(request, env)
-    const row = await findEmployeeByAuthUser(env, userId)
-    return json(buildProfile(userId, row))
-  }
+app.use('*', requestId);
+app.use('*', securityHeaders);
+app.use('*', async (c, next) => {
+  assertEnv(c.env); // throws on misconfiguration -> generic 500, details in logs (names only)
+  await next();
+});
+app.use('/api/*', csrf);
 
-  throw new HttpError(404, 'NOT_FOUND')
-}
+app.route('/api/auth', auth);
+app.route('/api', ping);
 
-export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
-    if (request.method === 'OPTIONS') {
-      return withCors(new Response(null, { status: 204 }), request, env)
-    }
-    const { pathname } = new URL(request.url)
-    let response: Response
-    try {
-      response = await handleApi(request, env, pathname)
-    } catch (err) {
-      if (err instanceof HttpError) {
-        response = json({ error: err.code }, err.status)
-      } else {
-        console.error('Unhandled API error', err)
-        response = json({ error: 'SERVER_ERROR' }, 500)
-      }
-    }
-    return withCors(response, request, env)
-  },
-} satisfies ExportedHandler<Env>
+app.notFound((c) => {
+  if (!c.req.path.startsWith('/api/') && c.env.ASSETS) return c.env.ASSETS.fetch(c.req.raw);
+  return jsonError(c, new AppError(404, 'NOT_FOUND'));
+});
+
+app.onError((err, c) => {
+  if (err instanceof AppError) return jsonError(c, err);
+  // Short log with correlation id. No stack, no request data, no upstream bodies.
+  console.error(`unhandled error rid=${c.get('requestId')} name=${err.name} msg=${err.message.slice(0, 120)}`);
+  return jsonError(c, new AppError(500, 'INTERNAL_ERROR'));
+});
+
+export default app;

@@ -3,13 +3,17 @@
 @tailwind utilities;
 
 @layer base {
-  /* Tokens (RGB channels). Brand red + ink taken from the approved screen mockups. */
+  /*
+   * Design tokens (RGB channels). Values are taken from the approved screen mockup
+   * (Moraya_Land_Surveyors_All_screens_updated.html): brand red, ink, panel and border colours.
+   */
   :root {
     --c-background: 255 255 255;
     --c-surface: 255 255 255;
-    --c-panel: 244 244 245;
-    --c-border: 217 217 220;
-    --c-field: 139 143 148; /* input borders: >=3:1 on surface */
+    --c-panel: 246 246 247;
+    --c-border: 212 212 214;
+    --c-field: 139 143 148; /* secondary buttons */
+    --c-placeholder: 139 143 148;
     --c-text: 26 26 26;
     --c-text-muted: 95 99 104;
     --c-primary: 215 31 38;
@@ -24,20 +28,27 @@
     --c-warning-subtle: 253 243 220;
     --c-info: 29 79 138;
     --c-info-subtle: 230 238 248;
+    /* Brand panel (login, desktop). */
+    --c-brand: 20 20 20;
+    --c-brand-text: 244 244 244;
+    --c-brand-muted: 179 179 179;
+    /* Logo: the black part of the artwork. */
+    --logo-ink: #111111;
     --lh-body: 1.5;
     --lh-heading: 1.3;
   }
   .dark {
-    --c-background: 17 17 17;
+    --c-background: 26 26 26;
     --c-surface: 26 26 26;
-    --c-panel: 22 22 22;
+    --c-panel: 34 34 34;
     --c-border: 52 54 58;
     --c-field: 118 122 128;
+    --c-placeholder: 112 116 122;
     --c-text: 236 236 236;
     --c-text-muted: 163 167 171;
-    --c-primary: 215 31 38;
-    --c-primary-hover: 232 52 59;
-    --c-primary-foreground: 255 255 255;
+    --c-primary: 238 58 64;
+    --c-primary-hover: 245 87 92;
+    --c-primary-foreground: 17 17 17;
     --c-link: 255 107 112;
     --c-danger: 255 123 114;
     --c-danger-subtle: 58 30 28;
@@ -47,6 +58,8 @@
     --c-warning-subtle: 56 44 20;
     --c-info: 127 178 240;
     --c-info-subtle: 27 42 61;
+    --c-brand: 13 13 13;
+    --logo-ink: #f4f4f4;
   }
   /* Devanagari needs more vertical room to avoid clipped matras. */
   :root[lang='mr'] {
@@ -58,16 +71,21 @@
     -webkit-text-size-adjust: 100%;
   }
   body {
-    @apply bg-background font-sans text-base text-text antialiased;
+    @apply bg-background text-text antialiased;
+    /* Same stack as the mockup; Noto Sans Devanagari backs up Marathi glyphs. */
+    font-family: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Devanagari Variable',
+      sans-serif;
+    font-size: 15px;
+    line-height: var(--lh-body);
     min-width: 320px;
   }
   :focus-visible {
-    outline: 2px solid rgb(var(--c-info));
+    outline: 2px solid rgb(var(--c-primary));
     outline-offset: 2px;
   }
   ::placeholder {
-    color: rgb(var(--c-text-muted));
-    opacity: 0.8;
+    color: rgb(var(--c-placeholder));
+    opacity: 1;
   }
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -78,5 +96,396 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+  }
+}
+
+/*
+ * Auth screens. Mirrors the login mockup: two columns from 941px up (5fr brand panel / 6fr form),
+ * single column below it with the brand panel hidden and the logo on top.
+ */
+@layer components {
+  .auth {
+    min-height: 100dvh;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    background: rgb(var(--c-background));
+    color: rgb(var(--c-text));
+  }
+  @media (min-width: 941px) {
+    .auth {
+      grid-template-columns: 5fr 6fr;
+    }
+  }
+
+  /* ---- Brand panel (desktop only) ---- */
+  .auth-brand {
+    display: none;
+    --logo-ink: #f4f4f4;
+    background: rgb(var(--c-brand));
+    color: rgb(var(--c-brand-text));
+    padding: 36px 40px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  @media (min-width: 941px) {
+    .auth-brand {
+      display: flex;
+    }
+  }
+  .auth-brand-inner {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    width: 100%;
+    max-width: 340px;
+  }
+  .auth-brand-logo {
+    width: 210px;
+    margin: 6px 0 0;
+  }
+  /* Red rule sits directly under the logo, as in the mockup. */
+  .auth-brand-copy {
+    border-top: 3px solid rgb(var(--c-primary));
+    padding-top: 22px;
+  }
+  .auth-brand-copy h2 {
+    font-size: 21px;
+    line-height: var(--lh-heading);
+    font-weight: 600;
+    margin: 0 0 14px;
+    max-width: 21ch;
+  }
+  .auth-brand-copy ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: rgb(var(--c-brand-muted));
+    font-size: 14px;
+  }
+  .auth-brand-copy li {
+    padding: 7px 0;
+    border-top: 1px solid rgb(255 255 255 / 0.16);
+  }
+  .auth-brand-foot {
+    margin-top: auto;
+    padding-top: 26px;
+    color: rgb(var(--c-brand-muted));
+    font-size: 12px;
+  }
+
+  /* ---- Form side ---- */
+  .auth-side {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    padding: 24px 22px 20px;
+  }
+  .auth-col {
+    width: 100%;
+    max-width: 380px;
+    margin-inline: auto;
+  }
+  .auth-mobile-logo {
+    width: 118px;
+    margin: 0 0 26px;
+  }
+  .auth-main {
+    flex: 1;
+  }
+  .auth-foot {
+    margin-top: auto;
+    padding-top: 22px;
+    font-size: 12px;
+    color: rgb(var(--c-text-muted));
+    text-align: center;
+  }
+  .auth-foot-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .auth-controls-desktop {
+    display: none;
+  }
+  @media (min-width: 941px) {
+    .auth-side {
+      align-items: center;
+      justify-content: center;
+      padding: 32px 28px;
+    }
+    .auth-main {
+      flex: none;
+    }
+    .auth-mobile-logo,
+    .auth-foot {
+      display: none;
+    }
+    .auth-controls-desktop {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: absolute;
+      top: 16px;
+      inset-inline-end: 20px;
+    }
+  }
+
+  .auth-title {
+    font-size: 23px;
+    font-weight: 600;
+    margin: 0 0 6px;
+    letter-spacing: -0.2px;
+  }
+  .auth-sub {
+    color: rgb(var(--c-text-muted));
+    margin: 0 0 24px;
+    font-size: 14px;
+  }
+  .auth-row {
+    margin: 2px 0 22px;
+    font-size: 14px;
+  }
+  .auth-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-weight: 400;
+    cursor: pointer;
+  }
+  .auth-check input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: rgb(var(--c-primary));
+  }
+  .auth-help {
+    margin: 22px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid rgb(var(--c-border));
+    color: rgb(var(--c-text-muted));
+    font-size: 13px;
+  }
+
+  /* ---- Form controls ---- */
+  .field {
+    margin-bottom: 18px;
+  }
+  .field-label {
+    display: block;
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  .input {
+    display: block;
+    width: 100%;
+    height: 52px;
+    padding: 0 14px;
+    font: inherit;
+    font-size: 16px; /* >=16px stops iOS zoom on focus */
+    color: rgb(var(--c-text));
+    background: rgb(var(--c-surface));
+    border: 1px solid rgb(var(--c-border));
+    border-radius: 6px;
+  }
+  .input:focus {
+    border-color: rgb(var(--c-primary));
+  }
+  .input:disabled {
+    opacity: 0.6;
+  }
+  .input[aria-invalid='true'] {
+    border-color: rgb(var(--c-danger));
+  }
+  .input-end {
+    padding-inline-end: 68px;
+  }
+  .input-toggle {
+    position: absolute;
+    inset-inline-end: 4px;
+    top: 4px;
+    bottom: 4px;
+    padding: 0 12px;
+    border: 0;
+    background: none;
+    color: rgb(var(--c-primary));
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .input-toggle:disabled {
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 54px;
+    border: 0;
+    border-radius: 6px;
+    background: rgb(var(--c-primary));
+    color: rgb(var(--c-primary-foreground));
+    font: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: rgb(var(--c-primary-hover));
+  }
+  .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  @media (min-width: 941px) {
+    .input {
+      height: 46px;
+      font-size: 15px;
+    }
+    .btn-primary {
+      height: 48px;
+      font-size: 15px;
+    }
+  }
+}
+
+/* ---- Admin shell & dashboard ---- */
+@layer components {
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 6px;
+    border-inline-start: 3px solid transparent;
+    color: rgb(var(--c-text-muted));
+    font-weight: 500;
+    line-height: var(--lh-body);
+  }
+  .nav-link:hover {
+    background: rgb(var(--c-panel));
+    color: rgb(var(--c-text));
+  }
+  /* Active item: bar + weight + background, never colour alone. */
+  .nav-link[aria-current='page'] {
+    background: rgb(var(--c-panel));
+    color: rgb(var(--c-text));
+    border-inline-start-color: rgb(var(--c-primary));
+    font-weight: 600;
+  }
+  .link-action {
+    color: rgb(var(--c-link));
+    font-weight: 500;
+  }
+  .link-action:hover {
+    text-decoration: underline;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+  .badge-success {
+    background: rgb(var(--c-success-subtle));
+    color: rgb(var(--c-success));
+    border-color: rgb(var(--c-success) / 0.35);
+  }
+  .badge-warning {
+    background: rgb(var(--c-warning-subtle));
+    color: rgb(var(--c-warning));
+    border-color: rgb(var(--c-warning) / 0.35);
+  }
+  .badge-danger {
+    background: rgb(var(--c-danger-subtle));
+    color: rgb(var(--c-danger));
+    border-color: rgb(var(--c-danger) / 0.35);
+  }
+  .badge-info {
+    background: rgb(var(--c-info-subtle));
+    color: rgb(var(--c-info));
+    border-color: rgb(var(--c-info) / 0.35);
+  }
+  .badge-neutral {
+    background: rgb(var(--c-panel));
+    color: rgb(var(--c-text-muted));
+    border-color: rgb(var(--c-border));
+  }
+
+  .attn {
+    border: 1px solid rgb(var(--c-warning) / 0.55);
+    background: rgb(var(--c-warning-subtle));
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+
+  .tab {
+    padding: 10px 14px;
+    margin-bottom: -1px;
+    border-bottom: 2px solid transparent;
+    color: rgb(var(--c-text-muted));
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .tab:hover {
+    color: rgb(var(--c-text));
+  }
+  .tab[aria-selected='true'] {
+    color: rgb(var(--c-text));
+    font-weight: 600;
+    border-bottom-color: rgb(var(--c-primary));
+  }
+
+  @keyframes m-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes m-slide-in {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: none;
+    }
+  }
+  @keyframes m-pop-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .anim-fade {
+    animation: m-fade-in 0.15s ease-out;
+  }
+  .anim-drawer {
+    animation: m-slide-in 0.2s ease-out;
+  }
+  .anim-pop {
+    animation: m-pop-in 0.12s ease-out;
   }
 }

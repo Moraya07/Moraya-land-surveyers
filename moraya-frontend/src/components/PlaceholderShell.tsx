@@ -26,7 +26,7 @@ export function PlaceholderShell({ title }: { title: string }) {
   return (
     <div className="min-h-dvh">
       <header className="flex items-center justify-between gap-3 border-b border-border p-4">
-        <Logo className="h-10" />
+        <Logo className="w-9" />
         <div className="flex items-center gap-3">
           <LanguageSwitch />
           <ThemeToggle />

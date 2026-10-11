@@ -1,6 +1,5 @@
 import { forwardRef, useState, type InputHTMLAttributes } from 'react';
 import { useI18n } from '../../i18n';
-import { EyeIcon, EyeOffIcon } from '../icons';
 import { Input } from './Input';
 
 interface PasswordInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
@@ -8,10 +7,10 @@ interface PasswordInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
   error?: string;
 }
 
+/** Text "Show / Hide" toggle inside the field, as in the mockup. */
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(function PasswordInput(props, ref) {
   const { t } = useI18n();
   const [visible, setVisible] = useState(false);
-  const label = t('login.show'); // constant label + aria-pressed = correct toggle pattern
 
   return (
     <Input
@@ -21,13 +20,13 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(fu
       endAdornment={
         <button
           type="button"
+          className="input-toggle"
           aria-pressed={visible}
-          aria-label={label}
-          title={label}
+          aria-label={t('login.toggleAria')} // constant label + aria-pressed = correct toggle pattern
+          disabled={props.disabled}
           onClick={() => setVisible((v) => !v)}
-          className="flex h-11 w-11 items-center justify-center rounded-md text-text-muted hover:text-text"
         >
-          {visible ? <EyeOffIcon /> : <EyeIcon />}
+          {visible ? t('login.hide') : t('login.show')}
         </button>
       }
     />

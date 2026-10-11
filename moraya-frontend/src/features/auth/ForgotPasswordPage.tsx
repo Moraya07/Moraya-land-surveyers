@@ -54,19 +54,19 @@ export function ForgotPasswordPage() {
 
   return (
     <AuthLayout>
-      <h1 className="text-2xl font-semibold text-text">{t('forgot.title')}</h1>
+      <h1 className="auth-title">{t('forgot.title')}</h1>
 
       {forgot.isSuccess ? (
         // Same message for every 202: never reveals whether the email exists.
-        <div className="mt-6">
+        <div className="mt-5">
           <Alert variant="success" role="status">
             {t('forgot.sent')}
           </Alert>
         </div>
       ) : (
-        <form noValidate onSubmit={onSubmit} className="mt-6">
-          <p className="mb-5 text-sm text-text-muted">{t('forgot.hint')}</p>
-          <fieldset disabled={forgot.isPending} className="min-w-0 space-y-5">
+        <form noValidate onSubmit={onSubmit}>
+          <p className="auth-sub">{t('forgot.hint')}</p>
+          <fieldset disabled={forgot.isPending} className="m-0 min-w-0 border-0 p-0">
             <Input
               label={t('login.email')}
               type="email"
@@ -78,11 +78,17 @@ export function ForgotPasswordPage() {
               {...register('email')}
             />
             {formError?.kind === 'key' && (
-              <Alert variant="danger" role="alert">
-                {t(formError.key)}
-              </Alert>
+              <div className="mb-[18px]">
+                <Alert variant="danger" role="alert">
+                  {t(formError.key)}
+                </Alert>
+              </div>
             )}
-            {formError?.kind === 'rate' && countdown.remaining > 0 && <RateLimitAlert remaining={countdown.remaining} />}
+            {formError?.kind === 'rate' && countdown.remaining > 0 && (
+              <div className="mb-[18px]">
+                <RateLimitAlert remaining={countdown.remaining} />
+              </div>
+            )}
             <Button type="submit" fullWidth loading={forgot.isPending} disabled={countdown.remaining > 0}>
               {forgot.isPending ? t('forgot.submitting') : t('forgot.submit')}
             </Button>

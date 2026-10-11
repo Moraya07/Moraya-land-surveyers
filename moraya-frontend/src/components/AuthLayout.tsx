@@ -4,37 +4,49 @@ import { LanguageSwitch } from './LanguageSwitch';
 import { Logo } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
 
+/**
+ * Shared shell for the sign-in screens. Layout follows the approved login mockup:
+ * dark brand panel + form on desktop, logo on top + form on mobile.
+ * Language and theme controls sit top-right on desktop and in the footer on mobile,
+ * so the mockup's own layout is left untouched.
+ */
 export function AuthLayout({ children }: { children: ReactNode }) {
   const { t } = useI18n();
   const footer = t('footer', { year: new Date().getFullYear() });
 
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[45fr_55fr]">
-      {/* Brand panel (desktop only) */}
-      <aside className="hidden flex-col justify-between border-e border-border bg-panel p-12 lg:flex">
-        <Logo className="h-40" />
-        <div className="max-w-sm">
-          <div className="mb-4 h-1 w-10 bg-primary" aria-hidden="true" />
-          <p className="text-2xl font-semibold text-text">{t('brand.product')}</p>
-          <p className="mt-2 text-base text-text-muted">{t('brand.tagline')}</p>
+    <div className="auth">
+      <aside className="auth-brand">
+        <div className="auth-brand-inner">
+          <Logo className="auth-brand-logo" />
+          <div className="auth-brand-copy">
+            <h2>{t('brand.headline')}</h2>
+            <ul>
+              <li>{t('brand.point1')}</li>
+              <li>{t('brand.point2')}</li>
+              <li>{t('brand.point3')}</li>
+            </ul>
+          </div>
+          <small className="auth-brand-foot">{footer}</small>
         </div>
-        <p className="text-sm text-text-muted">{footer}</p>
       </aside>
 
-      <div className="flex min-h-dvh flex-col">
-        <header className="flex items-center justify-end gap-3 p-4 lg:p-6">
+      <div className="auth-side">
+        <div className="auth-controls-desktop">
           <LanguageSwitch />
           <ThemeToggle />
-        </header>
-        <main className="flex flex-1 flex-col justify-center px-4 pb-10 sm:px-6">
-          <div className="mx-auto w-full max-w-[400px]">
-            <div className="mb-8 lg:hidden">
-              <Logo className="h-24" />
-            </div>
-            {children}
+        </div>
+        <div className="auth-col auth-main">
+          <Logo className="auth-mobile-logo" />
+          {children}
+        </div>
+        <footer className="auth-col auth-foot">
+          <div className="auth-foot-controls">
+            <LanguageSwitch />
+            <ThemeToggle />
           </div>
-        </main>
-        <footer className="px-4 pb-6 text-center text-sm text-text-muted lg:hidden">{footer}</footer>
+          {footer}
+        </footer>
       </div>
     </div>
   );

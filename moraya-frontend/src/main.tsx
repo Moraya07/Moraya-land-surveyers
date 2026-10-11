@@ -1,4 +1,3 @@
-import '@fontsource-variable/inter';
 import '@fontsource-variable/noto-sans-devanagari';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

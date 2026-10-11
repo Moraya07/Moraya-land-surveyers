@@ -7,11 +7,6 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
 }
 
-const variants = {
-  primary: 'bg-primary text-primary-foreground hover:bg-primary-hover',
-  secondary: 'border border-field bg-surface text-text hover:bg-panel',
-} as const;
-
 export function Button({
   variant = 'primary',
   loading = false,
@@ -22,12 +17,18 @@ export function Button({
   children,
   ...rest
 }: ButtonProps) {
+  const look =
+    variant === 'primary'
+      ? `btn-primary ${fullWidth ? '' : '!w-auto px-5'}`
+      : `inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-field bg-surface px-4 text-base font-medium text-text transition-colors hover:bg-panel disabled:cursor-not-allowed disabled:opacity-60 ${
+          fullWidth ? 'w-full' : ''
+        }`;
   return (
     <button
       type={type}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-4 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]} ${fullWidth ? 'w-full' : ''} ${className}`}
+      className={`${look} ${className}`}
       {...rest}
     >
       {loading && <Spinner />}

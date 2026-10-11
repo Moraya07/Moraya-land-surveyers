@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../../components/AuthLayout';
 import { PageSkeleton } from '../../components/PageSkeleton';
 import { Alert } from '../../components/ui/Alert';
@@ -80,10 +80,11 @@ export function LoginPage() {
 
   return (
     <AuthLayout>
-      <h1 className="text-2xl font-semibold text-text">{t('login.title')}</h1>
+      <h1 className="auth-title">{t('login.title')}</h1>
+      <p className="auth-sub">{t('login.subtitle')}</p>
 
-      <form noValidate onSubmit={onSubmit} className="mt-6">
-        <fieldset disabled={login.isPending} className="min-w-0 space-y-5">
+      <form noValidate onSubmit={onSubmit}>
+        <fieldset disabled={login.isPending} className="m-0 min-w-0 border-0 p-0">
           <Input
             label={t('login.email')}
             type="email"
@@ -91,29 +92,38 @@ export function LoginPage() {
             inputMode="email"
             autoCapitalize="none"
             spellCheck={false}
+            placeholder={t('login.emailPlaceholder')}
             error={fieldMessage(errors.email?.message)}
             {...register('email')}
           />
-          <div>
-            <PasswordInput
-              label={t('login.password')}
-              autoComplete="current-password"
-              error={fieldMessage(errors.password?.message)}
-              {...register('password')}
-            />
-            <div className="mt-1 flex justify-end">
-              <Link to="/forgot-password" className="inline-flex min-h-11 items-center text-sm font-medium text-link hover:underline">
-                {t('login.forgot')}
-              </Link>
-            </div>
+          <PasswordInput
+            label={t('login.password')}
+            autoComplete="current-password"
+            placeholder={t('login.passwordPlaceholder')}
+            error={fieldMessage(errors.password?.message)}
+            {...register('password')}
+          />
+
+          {/* Cosmetic for now: the API has no "remember me" field (see README). Never sent. */}
+          <div className="auth-row">
+            <label className="auth-check">
+              <input type="checkbox" name="keepSignedIn" />
+              {t('login.keep')}
+            </label>
           </div>
 
           {formError?.kind === 'key' && (
-            <Alert variant="danger" role="alert">
-              {t(formError.key)}
-            </Alert>
+            <div className="mb-[18px]">
+              <Alert variant="danger" role="alert">
+                {t(formError.key)}
+              </Alert>
+            </div>
           )}
-          {formError?.kind === 'rate' && countdown.remaining > 0 && <RateLimitAlert remaining={countdown.remaining} />}
+          {formError?.kind === 'rate' && countdown.remaining > 0 && (
+            <div className="mb-[18px]">
+              <RateLimitAlert remaining={countdown.remaining} />
+            </div>
+          )}
 
           <Button type="submit" fullWidth loading={login.isPending} disabled={countdown.remaining > 0}>
             {login.isPending ? t('login.submitting') : t('login.submit')}
@@ -121,7 +131,7 @@ export function LoginPage() {
         </fieldset>
       </form>
 
-      <p className="mt-6 text-center text-sm text-text-muted">{t('login.noAccount')}</p>
+      <p className="auth-help">{t('login.help')}</p>
     </AuthLayout>
   );
 }

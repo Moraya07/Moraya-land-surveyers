@@ -16,8 +16,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const errorId = `${inputId}-error`;
 
   return (
-    <div>
-      <label htmlFor={inputId} className="mb-1.5 block text-sm font-medium text-text">
+    <div className="field">
+      <label htmlFor={inputId} className="field-label">
         {label}
       </label>
       <div className="relative">
@@ -26,12 +26,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           id={inputId}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
-          className={`block min-h-11 w-full rounded-md border bg-surface px-3 text-base text-text disabled:opacity-60 ${
-            error ? 'border-danger' : 'border-field'
-          } ${endAdornment ? 'pe-12' : ''} ${className}`}
+          className={`input ${endAdornment ? 'input-end' : ''} ${className}`}
           {...rest}
         />
-        {endAdornment && <div className="absolute inset-y-0 end-0 flex items-center">{endAdornment}</div>}
+        {endAdornment}
       </div>
       {error && (
         <p id={errorId} className="mt-1.5 flex items-start gap-1.5 text-sm text-danger">
